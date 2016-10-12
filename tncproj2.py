@@ -1,4 +1,9 @@
-# 9.27.2016
+# A working script from an ongoing UCLA project.
+# This takes in a transit stations file (GTFS format) and a file with
+# the centroids of Census-tract-sized analysis polygons called
+# transportation analysis zones or TAZs.
+# It converts the coordinates in each file to lat,long
+# then calls Google Maps Distance Matrix API.
 
 from osgeo import ogr
 import pandas as pd
@@ -6,21 +11,12 @@ import numpy as np
 import googlemaps
 
 # ---- inputs ----
-# can later write something to accommodate switching os's (linux and mac)
+GEODATA_PATH = '/home/lewiscenter/Dropbox/TNCGrandChallenges/geodata/'
 
-# mac at home
-# geodata_path = '/Users/herbie/Dropbox/TNCGrandChallenges/geodata/'
-
-# linux at work
-geodata_path = '/home/lewiscenter/Dropbox/TNCGrandChallenges/geodata/'
-
-TRANSIT_STOPS = geodata_path + 'AllExclusiveROW.kml'
-TAZ_CENTROIDS = geodata_path + 'tier1centroids.kml'
+RAIL_STOPS = GEODATA_PATH + 'stops.txt'
+TAZ_CENTROIDS = GEODATA_PATH + 'tier1centroids.kml'
 
 MY_GOOGLE_MAPS_API_KEY = '!insert your API key here!'
-
-# --- functions ---
-# should GetStationCoords and GetTazCoords be revised so they take arguments?
 
 def GetCoordsFromGTFS(input_txt):
     # input is the stops.txt from a GTFS file directory
@@ -47,12 +43,6 @@ def GetCoordsFromKml(input_kml):
     coords = zip(ycoords,xcoords)
     return coords
 
-def CrowFliesFilter(input_kml, target_kml, buffer_radius):
-    # to reduce calls to google maps api, we filter by a crow flies threshold
-    # buffer_radius is the threshold distance (in what units)
-    # output_kml is all the features within buffer_radius distance of target_kml
-    return output_kml
-
 def CallGmapsDistanceMatrix(origins,dests):
     # origins and dests are lists of 2-tuples (lat,lon)
     # call google maps api distance_matrix
@@ -75,8 +65,8 @@ def CallGmapsDistanceMatrix(origins,dests):
     return dists, times
 
 def main():
-    stationcoords = GetStationCoords(RAIL_STOPS)
-    tazcoords = GetTazCoords(TAZ_CENTROIDS)
+    stationcoords = GetCoordsFromGTFS(RAIL_STOPS)
+    tazcoords = GetCoordsFromKml(TAZ_CENTROIDS)
     # dists, times = CallGmapsDistanceMatrix(stationcoords,tazcoords)
     # for testing, only first 25 origins and dests
     dists, times = CallGmapsDistanceMatrix(tazcoords[:25],stationcoords[:18])
