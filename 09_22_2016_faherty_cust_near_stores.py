@@ -1,3 +1,4 @@
+# HERES A CHANGE THAT DOESN"T MATTER
 # IPython log file
 
 get_ipython().magic(u'pwd ')
@@ -19,7 +20,7 @@ cust_zipcodes
 for zip in cust['Zip']:
     if '-' in zip:
         zip = zip[0:5]
-        
+
 type(cust['Zip'])
 cust['Zip'].dtype
 cust = pd.read_csv('customers_export_09-21-2016.csv', dtype={'Zip':str})
@@ -28,7 +29,7 @@ cust['Zip'].astype(str)
 for zip in cust['Zip']:
     if '-' in zip:
         zip = zip[0:5]
-        
+
 cust['Zip']= cust['Zip'].astype(str)
 cust['Zip'].dtype
 cust['Zip']
@@ -37,7 +38,7 @@ type(cust['Zip'][0])
 def cleanzip(string):
     if '-' in string:
         string = string[0:5]
-        
+
 cust['Zip'] = cust['Zip'].apply(cleanzip)
 cust['Zip']
 a = asdfasdf
@@ -65,7 +66,7 @@ output.to_csv('C:\\Users\\Lewis Center\\Dropbox\\faherty')
 output.to_csv('C:\Users\Lewis Center\Dropbox\faherty')
 output.to_csv('zip_count.csv')
 def cleanzip(string):
-    
+
     if '-' in string:
         string = string[0:5]
     if len(string) = 3:
