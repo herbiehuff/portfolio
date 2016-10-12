@@ -1,0 +1,565 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+\usepackage{lscape}
+\usepackage{pdflscape}
+\usepackage{booktabs}
+\usepackage{bigstrut}
+\usepackage{rotating}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{verbatim}
+\usepackage{setspace}
+\usepackage[hidelinks]{hyperref}
+\usepackage{amsmath}
+\usepackage{lineno}
+
+\usepackage{fancyhdr}
+\fancyhf{}
+\rhead{\thepage}
+\lhead{Huff and Liggett}
+\pagestyle{fancy}
+%\doublespacing
+% or:
+\onehalfspacing
+
+%\renewcommand{\sfdefault}{ptm}
+%\usepackage[xetex]{graphicx}
+%\usepackage{fontspec}
+%\setmainfont{Times New Roman}
+%tried to change to Times New Roman per TRB reqs but couldn't get this to work
+
+% TRB section title reqs
+%\usepackage{titlesec}
+%\titleformat
+%{\section}
+%[hang]
+%{\normalfont \MakeUppercase}
+%{}
+%{1em}
+%{} % before
+%[] % after
+% can't get this to work at the moment either
+
+\usepackage{chngcntr}
+\counterwithout{figure}{section}
+%this makes figures count with simple ordinals instead of 1.1 etc depending on the section
+
+
+\renewcommand{\topfraction}{.85}
+\renewcommand{\bottomfraction}{.7}
+\renewcommand{\textfraction}{.15}
+\renewcommand{\floatpagefraction}{.66}
+\renewcommand{\dbltopfraction}{.66}
+\renewcommand{\dblfloatpagefraction}{.66}
+\setcounter{topnumber}{9}
+\setcounter{bottomnumber}{9}
+\setcounter{totalnumber}{20}
+\setcounter{dbltopnumber}{9}
+% these might be helping table placement by dealing with latex 'floats'
+% source: http://www.tex.ac.uk/cgi-bin/texfaq2html?label=floats
+
+
+\title{An Exposition of the Highway Capacity Manual's Bicycle Level of Service Model}
+\author{K. Herbie Huff and Robin Liggett}
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\linenumbers
+%\maketitle
+% comment this out because separated Microsoft Word cover page
+
+\begin{abstract}
+\normalsize
+The 2010 Highway Capacity Manual (HCM) contains the only national standard for evaluating street performance for biking, walking, and transit: HCM’s Multimodal-Level-of-Service (MMLOS). Many public agencies are currently in the process of considering whether they should formally adopt MMLOS in various policy contexts. At the same time, MMLOS itself is in flux, and probably will be substantially updated in coming years. As such, it’s more crucial than ever that this method be presented in an easy-to-understand way. This paper attempts to model such a presentation.
+
+For reasons of brevity and relevance, we focus on the bicycle mode. Bicycle level-of-service is slated for updates in the 2015 HCM, and bicycle facility design and operations are in a state of rapid innovation. We take as our audience the many stakeholders who have an interest in BLOS but do not have strong familiarity with the HCM. We break open the black box and show how BLOS works and what it does. This comprehensive yet brief reading of BLOS covers the variables included and their significance in determining the final score, the original data required, and a sensitivity analysis using plausible hypothetical cases. 
+
+How can practitioners use BLOS if they don’t understand how it works? This paper serves as a reference for broader conversations about the evolution of BLOS and MMLOS more generally.
+
+\thispagestyle{empty}
+\newpage
+
+\end{abstract}
+
+\section{Introduction}
+
+
+The 2010 Highway Capacity Manual (HCM) contains the only national standard for evaluating street performance for biking, walking, and transit: HCM’s Multimodal-Level-of-Service (MMLOS) (1,2). The method is in some ways a work in progress: updates to the way the method treats delay for pedestrians and bicyclists are underway (3), and rapid innovation in design and operations for walking, biking, and transit necessitates that MMLOS will continue to need updates. Indeed, alternative models are already being proposed (4). Further, many public agencies are currently in the process of considering whether they should formally adopt MMLOS, for purposes varying from highway design to environmental mitigation to local performance measurement. Given that MMLOS is 1) under active consideration by agencies around the country and 2) approaching imminent revisions, it’s more crucial than ever that this method be presented in an easy-to-understand way. The innovative pedagogical contribution of this paper is to model such a presentation.
+
+While MMLOS integrates the modes to facilitate analysis of modal interactions, stakeholders in various policy contexts may be independently interested in one or more of biking, walking, or transit. Think of a transit agency or an active transportation department, for example. We demonstrate a mode-specific exposition here, choosing to focus on the bicycle mode because this one is slated for revisions in the 2015 HCM, and because there are so many rapid changes occuring in facility design and operations for bicycling.
+
+We take as our audience the many stakeholders who have an interested in BLOS but do not have strong familiarity with the HCM. These include elected officials and their staff, agency staff at state and local departments of transportation, advocates, researchers, and members of the public. For many of these people, it would take hours to answer such questions as the following. What variables are included in the calculation of BLOS? What significance does each have in determining the final score? How sensitive is BLOS to various changes in roadway design? How data-intensive and time-intensive are the calculations? What variables are not included that are of interest to planners and policymakers? We seek to provide a comprehensive yet brief reading of BLOS that answers these questions. Charts, tables and graphs clearly present BLOS. A sensitivity analysis makes use of plausible hypothetical cases to show how scores vary under differing conditions. We break open the black box and show how BLOS works and what it does.
+
+
+\subsection{Units of Analysis}
+
+We first explain the four formal units of analysis employed by the HCM. Each of these can receive a unique BLOS score. They are 1) the intersection, 2) the link, 3) the segment, and 4) the facility, as shown in Figure \ref{fig:unitsOfAnalysis}. 
+
+
+\begin{figure}
+
+\includegraphics[height=5in]{intersection_diagram_bike}
+
+\caption{A street is broken up into formal units of analysis, each of which receives a BLOS score.}
+
+\label{fig:unitsOfAnalysis}
+
+\end{figure}
+
+
+Links can span multiple blocks: the boundary of a link is defined as where the link hits a signal or a two-way stop that stops traffic on the link. Intersection and link scores are each given by a formula combining 1) geometric variables (e.g. design features like roadway width, number of lanes) and 2) operational characteristics of the link or intersection (e.g. vehicle volumes and speeds). Segment scores combine link scores and downstream boundary intersection scores with the additional segment-wide consideration of how many access point approaches there are that present potential conflict points with bicyclists. Facility scores are weighted averages of segment scores.  Each of these formulae ultimately produces a numerical score which the analyst converts to a grade according to the correspondence shown in Table \ref{table:BLOS_Scale}: the separation between grades is 0.75; an A is anything less than 2; and an F is anything greater than 5. 
+
+
+% table count 1
+\begin{table}
+\centering
+\begin{tabular}{| c | c |} 
+
+\hline
+Grade & Numerical Range \\
+\hline
+A & $x \leq 2.00$ \\
+\hline
+B & $2.00 < x \leq 2.75$ \\
+\hline
+C & $2.75 < x \leq 3.50$ \\
+\hline
+D & $3.50 < x \leq 4.25$ \\
+\hline
+E & $4.25 < x \leq 5.00$ \\
+\hline
+F & $ x > 5.00$ \\
+\hline
+\end {tabular}
+\caption{Correspondence between numerical scores and grades in BLOS. (Source: Exhibit 17-4, 2010 Highway Capacity Manual)}
+\label{table:BLOS_Scale}
+\end{table}
+
+
+\vspace{12pt}
+
+Second, note that for each of these four units of analysis, the BLOS scores are specific to a direction of travel or leg of an intersection. For a two-way roadway, there would be two segment BLOS scores, one for each direction. Most intersections have four legs, so would have four BLOS scores, one for each approach. The HCM authors instruct analysts very specifically \emph{not} to combine the direction-specific scores to produce a single score for an intersection or segment. Combinations of intersection, link, or segment scores are permissible given a single direction of travel, though the HCM urges caution when doing this. The resulting facility score is specific to a direction of travel.
+
+BLOS is also specific to a period of time. The HCM authors instruct analysts to limit the period of time studied to one hour, lest operational conditions (e.g. motor vehicle speeds and volumes, signal cycle parameters) vary too much within the period.
+%source 17-2
+
+\section{The Functional Form of BLOS}
+
+We now consider the variables, units of analysis, formulae, and processes employed in the calculation of Bicycle Level-of-Service (BLOS) as it is presented in the 2010 Highway Capacity Manual. 
+
+\subsection{Intersection BLOS: Variables, Formula, and Sensitivity}
+Here we consider the methodology for calculating BLOS at a signalized intersection, since these are the types of intersections that form boundaries of segments, which then form facilities. The HCM does give a separate method for analyzing four-way stop controlled intersections, which we do not consider here. In order to calculate BLOS for an intersection, you must have in hand the information listed in the first column of Table \ref{table:BLOS_Int_Data}.
+
+\begin{landscape}
+\newgeometry{landscape=true,
+left=1cm,
+right=1cm,
+top=1cm,
+bottom=1cm}
+\thispagestyle{empty}
+
+% table count 2
+% Table generated by Excel2LaTeX from sheet 'bike int'
+\begin{table}
+\centering
+\resizebox{6in}{!}{
+\begin{tabular}{|p{2in}|l|p{1in}|p{2in}|p{2in}|p{2in}|}
+\toprule
+Name  & Variable & Units & Algebraic Terms & Direction of effect on BLOS & Notes on data definitions \\
+\midrule
+curb-to-curb width of the cross street & $W_{cd}$ & feet  & $0.0153W_{cd} - 0.2144W_t$ & Increasing this degrades BLOS. &  \\
+\hline
+left-turn demand flow rate & $v_{lt}$ & vehicles per hour & $0.0066\frac{v_{lt}+v_{th+v_{rt}}}{4N_{th}}$ & Increasing this degrades BLOS. & The HCM's language makes it unclear if this should be a \emph{measured} quantity or a \emph{modeled} quantity \\
+\hline
+through demand flow rate & $v_{th}$ & vehicles per hour & $0.0066\frac{v_{lt}+v_{th+v_{rt}}}{4N_{th}}$ & Increasing this degrades BLOS. & As above. \\
+\hline
+right-turn demand flow rate & $v_{rt}$ & vehicles per hour & $0.0066\frac{v_{lt}+v_{th+v_{rt}}}{4N_{th}}$ & Increasing this degrades BLOS. & As above. \\
+\hline
+number of through lanes (shared or exclusive) & $N_{th}$ & number & $0.0066\frac{v_{lt}+v_{th+v_{rt}}}{4N_{th}}$ & This variable affects both the $F_w$ and the $F_v$ term in conflicting ways. With more lanes, $W_{cd}$ is likely to be larger, but if traffic is held constant $F_v$ would decrease.  &  \\
+\hline
+width of the outside through lane & $W_{ol}$ & feet  & $W_{ol}+W_{bl}+I_{pk}W_{os}^*$ & Increasing this improves BLOS, unless $W_{cd}$ is increased in which case this variable has a conflicted effect. &  \\
+\hline
+width of the bicycle lane & $W_{bl}$ & feet  & $W_{ol}+W_{bl}+I_{pk}W_{os}^*$ & Increasing this improves BLOS, unless $W_{cd}$ is increased in which case this variable has a conflicted effect. & This is 0 if there is no bicycle lane. \\
+\hline
+on-street parking occupancy & $p_{pk}$ & percentage & Used to define $I_{pk} = 0$ if $p_{pk}>0$. Otherwise $I_{pk} = 1$. & Where curbs are present, BLOS is degraded. &  \\
+\hline
+width of paved outside shoulder & $W_{os}$ & feet  & $W_{os}$ & Increasing this improves BLOS, unless $W_{cd}$ is increased in which case this variable has a conflicted effect. &  \\
+\hline
+presence of curbs & N/A   & binary & If curb is present, and $W_{os} \geq 1.5$, $W_{os}^*=W_{os}-1.5$. Otherwise, $W_{os}^*=W_{os}$. & If this is non-zero, BLOS is degraded. &  \\
+\hline
+\bottomrule
+\end{tabular}%
+}
+% end resize box
+\caption{Data required to calculate BLOS for a signalized intersection.}
+\label{table:BLOS_Int_Data}
+\end{table}
+
+\restoregeometry
+\end{landscape}
+
+%note: later, the units need to be made consistent in these tables, e.g. in one table it's "veh / hr" and in another table it's "vehicles per hour"
+
+Note that these original data are used to define a few intermediate variables, each of which appears in the final formula for Intersection BLOS. The first of these is $I_{pk}$, the indicator variable for on-street parking occupancy. This is 1 if \emph{any} parking is occupied. It's zero if parking is not allowed or there is no parking occupied. The second of these is $W_{os}^*$. This is an adjusted shoulder width, where if a curb is present, 1.5 feet is subtracted from the shoulder width to account for shy distance from the curb.
+
+The formula for Bicycle Level of Service at an Intersection, $I_{b,int}$, is then
+
+$$I_{b,int} = 4.1324 + F_w + F_v$$
+
+where
+
+$$ F_w = 0.0153W_{cd}-0.2144W_t ,$$
+$$ F_v = 0.0066\frac{v_{lt}+v_{th}+v_{rt}}{4N_{th}},$$
+and
+$$ W_t = W_{ol}+W_{bl}+I_{pk}W_{os}^* .$$
+
+
+
+\subsubsection{Sensitivity Analysis}
+
+A sensitivity analysis provides a graphic representation of the relative importance of each of the terms in intersection BLOS, and the independent effects of the variables in those terms. Due to the varying units involved, this is difficult to read from the formulae themselves. Table \ref{table:BLOS_int_sens_default} shows the default values chosen for the sensitivity analysis; these represent plausible and common conditions on U.S. streets.
+
+% table count 3
+% Table generated by Excel2LaTeX from sheet 'BLOS Int (hh)'
+\begin{table}
+\centering
+\begin{tabular}{|c|l|c|}
+\toprule
+Variable & Name  & Value \\
+\midrule
+$W_{cd}$ & curb-to-curb width of the cross street & 66 \\
+$v_{lt}$ & left-turn demand flow rate & 200 \\
+$v_{th}$ & through demand flow rate & 400 \\
+$v_{rt}$ & right-turn demand flow rate & 300 \\
+$N_{th}$ & number of through lanes (shared or exclusive) & 1 \\
+$W_{ol}$ & width of the outside through lane & 11 \\
+$W_{bl}$ & width of the bicycle lane & 6 \\
+$I_{pk}$ & on-street parking occupancy & 0.85 \\
+$W_{os}$ & width of paved outside shoulder & 7 \\
+\bottomrule
+\end{tabular}
+\caption{Default values employed in sensitivity analysis of intersection BLOS.}
+\label{table:BLOS_int_sens_default}
+\end{table}
+
+Figure \ref{fig:bike_int_sens1} presents the intersection BLOS score broken into its component parts, providing an understanding of the relative importance of $F_w$ and $F_v$. The first column of Figure [x] uses the default values shown above. Subsequent columns vary these input parameters in order to examine the effect on the relative magnitude of $F_w$ and $F_v$. 
+
+In the second column, the traffic volumes are doubled. In the third column, the original traffic volumes are used and the number of through lanes is doubled. Fourth column: the bike lane is removed, with the assumption that the resulting width is converted to outside through lane. In the fifth column, the bike lane is removed, with the assumption that the street width overall is reduced. Sixth column: identical to the fifth column, with on-street parking removed. Seventh column: a road diet on the parameters used in column 5, so the number of through lanes is reduced, bike lanes are added, and some reduction in traffic volumes is assumed. Eighth column: identical to the seventh without the assumption of reduced traffic volumes.
+
+
+\begin{figure}
+
+\includegraphics{bike_int_sens1}
+
+\caption{Contributions of $F_w$, $F_v$ and the constant to intersection BLOS for a variety of cases.}
+
+\label{fig:bike_int_sens1}
+
+\end{figure}
+
+Across all these cases, the width term predominates. The exception is the second column, in which case there are relatively large traffic volumes.
+%(400 lefts, 800 through, and 600 rights per hour). 
+
+The third and fourth columns are identical to illustrate that intersection BLOS is indifferent to whether operating space comes in the form of bike lane or outside through lane. If a bike lane is added by restriping excess width in a through lane, intersection BLOS does not change, because there would be no change in the width term $W_t =W_{ol}+W_{bl}+I_{pk}W_{os}^*$. The seventh and eighth columns illustrate that although reducing the number of lanes can increase $F_v$, the reduction in $F_w$ outweighs the increase in $F_v$, making lane reduction something that on the whole improves intersection BLOS.  
+% CUT the above IF NECESSARY
+
+%There are a few things worth questioning in Intersection BLOS. First, why does parking occupancy appear in the calculation? Parking is prohibited on intersection approaches, so its effect on bicycle level-of-service would seem to be a property of the link, not the intersection. Second, why does $F_v$ only consider the number of through lanes? One would think that increases in the number of turning lanes would also degrade bicyclist comfort and safety. Double right-turn configurations, and through/right-turn lanes, are considered poor practice in roadway design to accommodate bicycles. Finally, why does intersection BLOS not account for delay? A method for calculating bicycle delay is given in the HCM as a separate calculation, but it is not incorporated into  intersection BLOS, nor is it included in link, segment, or facility BLOS.The HCM authors account for delay in the calculation of PLOS and, presumably, auto LOS, and they don't offer any reasoning as to why delay to bicyclists is treated differently.
+
+It is worth noting those variables to which intersection BLOS is not sensitive despite their importance in policy and planning (5). Intersection BLOS is indifferent to intersection treatments such as bicycle boxes, striping through intersections, and bicycle-only signal phases. It's indifferent to whether or not a signal can detect bicycles, or to the presence of a push-button oriented towards bicyclists allowing them to activate the signal. It is indifferent to the length of the green and yellow phase, which can often be insufficient for slow-moving bicyclists to clear the intersection. Also, the HCM does not give a methodology for BLOS at two-way stop controlled intersections. Although agencies have improved difficult crossings at these intersections via such treatments as signs and bicycle-length medians, BLOS would be indifferent to such improvements.
+
+\subsection{Link BLOS: Variables, Formula, and Sensitivity}
+Recall that link BLOS is specific to a direction of travel. In order to calculate BLOS for a link, you must have the following information in hand. Again, we distinguish between original data and intermediate variables, and note that the HCM defines two intermediate variables, $W_t$ and $W_v$.
+% add citation - noting that it's HCM Exhibit 17-21 that constitutes the presentation mentioned
+
+% note that Exhibit 17-6 does contain a list of this information for ped and bike segment / link LOS. It may be worth noting this or softening the critique on the HCM for not making original data requirements clear.
+
+
+\begin{landscape}
+\newgeometry{landscape=true,
+left=1cm,
+right=1cm,
+top=1cm,
+bottom=1cm}
+\thispagestyle{empty}
+
+\begin{table}
+\centering
+\resizebox{6in}{!}{
+% table count 4
+% Table generated by Excel2LaTeX from sheet 'bike link'
+
+\begin{tabular}{|p{2in}|l|p{1in}|p{2in}|p{2in}|p{2in}|}
+\toprule
+Name  & Variable & Units & Affects which intermediate and final variables? & Direction of effect on BLOS & Notes on data definitions  \\
+\midrule
+parking occupancy & $p_{pk}$ & percentage & $W_t$, $W_e$ & Increasing this degrades BLOS, first through the condition on $W_t$, and then through the adjustment to $W_v$ to obtain $W_e$. &  \\
+\hline
+midsegment demand flow rate & $v_m$ & vehicles per hour & $W_v$ & Increasing this degrades BLOS, up to $v_m = 160$. Increases above 160 do not affect BLOS. & The HCM's language makes it unclear if this should be a \emph{measured} quantity or a \emph{modeled} quantity \\
+\hline
+width of outside through lane & $W_{ol}$ & feet  & $W_t$ & Increasing this improves BLOS. &  \\
+\hline
+width of bicycle lane & $W_{bl}$ & feet  & $W_t$ & Increasing this improves BLOS. &  \\
+\hline
+width of paved outside shoulder & $W_{os}$ & feet  & $W_t$, $W_e$ & Increasing this improves BLOS. &  \\
+\hline
+presence of curbs & N/A   & binary & $W_t$, $W_e$ & Increasing this degrades BLOS. &  \\
+\hline
+percentage heavy vehicles in the midsegment demand flow rate & $P_{HV}$ & percentage & $P_{HVa}$ & Increasing this degrades BLOS. &  \\
+\hline
+motorized vehicle running speed & $S_R$ & miles per hour & $S_{Ra}$ & Increasing this degrades BLOS. &  \\
+\hline
+number of through lanes in the subject direction of travel & $N_{th}$ & number & $v_{ma}$ & Increasing this improves BLOS, if $v_{ma}$ remains unchanged. & The condition $v_m < 4 N_{th}$ is here to prevent $ln(\frac{v_{ma}}{4 N_{th}}$ from being negative in the formula for $F_v$. \\
+\hline
+pavement condition rating & $P_c$ & number &       & Increasing this improves BLOS. & Takes on values between 0.0 and 5.0 as defined in Figure \ref{fig:HCM_ex17-21}. \\
+\hline
+\bottomrule
+\end{tabular}
+}
+ % end resize box
+\caption{Data required to calculate BLOS for a link.}
+\label{table:BLOS_Link_Data}
+\end{table}
+
+\restoregeometry
+\end{landscape}
+
+% BL condition is absurd - BL +shoulder *can't* be less than 4 feet in most states. It's actually a broader problem because none of the HCM formulae deal directly with the configuration of the parking and whether or not the parking is striped. They speak about the shoulder rather than the parking area. This is using highway terminology for urban streets.
+
+From these data, values for final variables $W_e$, $v_{ma}$, $S_{Ra}$, and  $P_{HVa}$ are given by Figure \ref{fig:HCM_ex17-21}:
+
+
+
+\begin{figure}[h]
+\centering
+\scalebox{0.8}{
+\includegraphics{exhibit_17-21}
+}
+
+\caption{Instructions for calculating effective widths and adjusted vehicle operating variables. (Source:Exhibit 17-21, 2010 Highway Capacity Manual)}
+
+\label{fig:HCM_ex17-21}
+
+\end{figure}
+
+
+This exhibit deserves explication. The first three rows are step-by-step adjustments to the sum$W_{ol} + W_{bl} + W_{os}^*$ to obtain $W_e$, the effective operating width for bicyclists. The calculation of $W_e$ hinges on several conditions for parking occupancy ($p_{pk}$), traffic volumes ($v_m$), bike lane width ($W_{bl}$), shoulder width ($W_{os}$), and the presence of curbs. First, if any parking is occupied ($p_{pk}>0$), the shoulder width is not included in the calculation of bicyclist operating space, $W_t$. Note that the curb-adjusted shoulder width $W_{os}^*$ is used, where the presence of curbs results in a 1.5 foot loss of the effective shoulder width. We then calculate a volume-adjusted operating space, $W_v$. This can be nearly twice $W_t$ if volumes are below the threshold of 160 vehicles per hour and the roadway is not divided. Presumably this accounts for the fact that vehicles can give bicyclists a wider passing berth on very low volume roads. If those conditions are not met, $W_v = W_t$. The third condition on $W_{bl}+W_{os}^*$, the combined width of bicycle lane and shoulder, dictates that $W_v$ is adjusted downward proportional to the parking occupancy, and that the width of the bike lane and the outside shoulder are only included in $W_e$ when this combined width is greater than 4. Parking occupancy carries a greater penalty when the bike lane and shoulder are included in $W_e$, presumably because when these variables are not included, the shoulder is too narrow to park in. 
+
+The last three conditions in Exhibit 17-21 adjust each of $P_{HV}$, $S_R$, and $v_m$, presumably to avoid certain nonsense outcomes in the formulae. For example: if running speeds are less than 21 miles per hour, we set $S_{Ra} = 21$ miles per hour. In other words, running speeds below 21 miles per hour are all considered as equivalent to the case when running speeds are 21 miles per hour. This condition ensures that the quantity $S_{Ra}-20$, which appears in the link BLOS formula, is never less than 1. If it were, that would enable $F_S$ to be negative, so we must presume that the HCM authors do not under any circumstances want a negative $F_S$. Adjustments to $P_{HV}$ and $v_m$ appear to stem from similar logic.
+
+Values for $P_c$ are given by Exhibit 17-7:
+
+\vspace{12pt}
+
+\begin{figure}[h]
+\centering
+\scalebox{0.8}{
+\includegraphics{exhibit_17-7}
+}
+
+\caption{Criteria for determining $P_c$. (Source: Exhibit 17-7, 2010 Highway Capacity Manual)}
+
+\label{fig:HCM_ex17-7}
+
+\end{figure}
+% CUT this figure and change it into a sentence if necessary.
+
+\vspace{12pt}
+
+Finally, Bicycle Level-of-Service for a link is given by the following formulae:
+
+$$I_{b,link} = 0.760 + F_w + F_v + F_S + F_p$$
+where
+$$F_w = -0.005 W_e^2$$
+$$F_v = 0.507 \ln \left( \frac{v_{ma}}{4 N_{th}} \right)$$
+$$F_S = 0.199 \left(1.1199 \ln (S_{Ra}-20) +0.8103 \right) (1+0.1038P_{HVa})^2$$
+$$F_p = \frac{7.066}{P_c^2}$$
+
+That is, link BLOS is the sum of a constant and four terms. Again, the higher the sum, the worse the score. Some of these terms can take on negative values. The width term $F_w$, is negative, and corresponds to the amount of operating space a bicyclist has on the link. The volumes term, $F_v$, is positive, corresponds to the density of motor vehicles, or the traffic volumes per lane on the streeet. The speed term $F_S$ is positive, and is a relatively complex function of the motor vehicle operating speeds and the percentage of heavy vehicles. The pavement quality term $F_p$ is positive, and corresponds to a pavement quality rating given by the analyst.
+
+The speed term $F_s$ is the most complex and deserves further explication. This term allows running speeds and the percentage of heavy vehicles to interact. $F_s$ can be expanded algebraically. Sparing you the details of this expansion, let us simply state that
+
+\begin{align*}
+%F_S &= 0.199 \left(1.1199 \ln S_{Ra*} +0.8103 \right) (1+0.1038P_{HVa})^2 \\
+F_S &= .1612+ .2229 \ln (S_{Ra}-20) + .0463 \ln (S_{Ra}-20) P_{HVa} + .0024\ln (S_{Ra}-20)P_{HVa}^2 \\
+&       + .0335*P_{HVa} + .0017*P_{HVa}^2
+\end{align*}
+% it would be good to fix spacing so the second line of the plus is indented.
+
+This expansion makes it more clear that $\ln (S_{Ra}-20)$ and $P_{HVa}^2$ interact. It also more plainly shows the values of the constant and the various coefficients.
+
+% it would be great to show a 3D surface showing where this has its min and max (plural)?
+
+\subsubsection{Sensitivity Analysis}
+Again, due to the various units of measurement involved as well as the interactive terms, the relative weights of the various $F$ terms are difficult to read from the formula. Table \ref{table:BLOS_link_sens_default} shows the default values used in a sensitivity analysis.
+
+% table count 5
+% Table generated by Excel2LaTeX from sheet 'Sheet1'
+
+%\vspace{12pt}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|l|c|}
+\hline
+Variable & Name  & Value \\
+\hline
+$p_{pk}$ & parking occupancy & 0.95 \\
+\hline
+$v_m$ & midsegment demand flow rate & 232 \\
+\hline
+$W_{ol}$ & width of outside through lane & 10.5 \\
+\hline
+$W_{bl}$ & width of bicycle lane & 5 \\
+\hline
+$W_{os}$ & width of paved outside shoulder & 7.5 \\
+\hline
+N/A   & presence of curbs (binary) & 1 \\
+\hline
+$P_{HV}$ & percentage heavy vehicles in the midsegment demand flow rate & 5 \\
+\hline
+$S_R$ & motorized vehicle running speed & 22.2 \\
+\hline
+$N_{th}$ & number of through lanes in the subject direction of travel & 1 \\
+\hline
+$P_c$ & pavement condition rating & 3 \\
+\hline
+\end{tabular}
+\caption{Default values employed in sensitivity analysis of link BLOS.}
+\label{table:BLOS_link_sens_default}
+\end{table}
+\vspace{.25in}
+
+Figure \ref{fig:BLOS_link_sens_defaults} shows the relative importance of the various components of BLOS under these default values, and in seven cases generated by stepwise variation of these parameters. 
+
+\vspace{12pt}
+
+\begin{figure}[h]
+\centering
+
+\includegraphics{BLOS_link_sens_1}
+
+
+\caption{Contributions of $F_w$, $F_v$, $F_s$, $F_p$ and the constant to link BLOS for a variety of cases.}
+
+\label{fig:BLOS_link_sens_defaults}
+
+\end{figure}
+
+
+\vspace{12pt}
+
+The columns correspond to the following cases. In the second column, parking occupancy is 50\%. Third column: pavement quality is raised to 5. Fourth column: running speed is raised to 30 mph. Fifth column: heavy vehicles constitute 10\% of the vehicle flow. Sixth column: the bike lane is widened to 10' (without any concomitant changes to the outside lane width or any other parameters). Seventh column: the vehicle flow is doubled. Eighth column: the percentage of heavy vehicles is brought back down to 1\%.
+
+
+Across these cases, the volume factor $F_v$ tends to have the largest contribution to link BLOS. With high percentages of heavy vehicles, $F_s$ can have a large contribution as well. Similarly, with very wide bike lanes, $F_w$ can have a substantial negative contribution. In all cases, $F_p$, the pavement quality factor, has a relatively small contribution. It's also worth noting that enough operating width for the bicycle can counteract the negative effect of speeds, volumes, and heavy vehicle volumes in link BLOS. $F_w$ is the square of the available width, and can grow without bound. The volume and speed factors $F_v$ and $F_s$, on the other hand, contain $\ln( )$ terms, so that $F_v$ and $F_s$ increase more slowly with increasingly large input values of $S_{Ra}$ and $v_{ma}$. $F_s$ does contain a squared term for $P_{HV}$, which means that large percentages of heavy vehicles can degrade link BLOS by an unlimited amount.
+
+The following figures examine how sensitive link BLOS is to variations in some of its input variables. We set all of the variables but one to default values in order to examine the consequences of varying the variable of interest. A full exposition would include all of the inputs that make a substantial contribution to the final score. For reasons of brevity, we illustrate only two of these: traffic volumes and percent heavy vehicles.
+
+%Fv 
+Two of the most important input variables in link BLOS are the volume of vehicles ($v_{ma}$) and the number of lanes in the subject direction of travel ($N_{th}$). The ratio of these, the volume of vehicles per lane, determines $F_v$, the volume factor. In Figure \ref{fig:BLOS_link_sens_TV}, we vary traffic volume while holding the number of lanes and all other variables constant. 
+
+
+\begin{figure}
+\centering
+
+\includegraphics{BLOS_link_sens_TV}
+
+
+\caption{Sensitivity of link BLOS to variations in traffic volume.}
+
+\label{fig:BLOS_link_sens_TV}
+
+\end{figure}
+
+The figure shows, all other things being equal, that streets with a greater flow of vehicles per lane will have worse link BLOS scores. Vehicle flow per lane affects both $F_w$ and $F_v$. When volumes are below 160, $v_m$ is used to adjust the total width $W_t$ downward to obtain a volume adjusted width, $W_v = W_t (2-0.005 v_m)$. For all ranges of $v_m$, $F_v$ is proportional to the natural log of vehicle volumes. The combined effect is that link BLOS is more sensitive to traffic volumes at lower volumes. Increasing volumes above, say, 225 vehicles / hour does not have the great effect that increasing volumes at lower ranges does. 
+
+Of course, policymakers generally can't change traffic volumes without also changing other features of the street, such as the number of lanes. At the same time, changes in traffic volumes can bring about changes in travel speeds and other operational characteristics. For an analyst employing PLOS or BLOS to understand the effect of proposed changes to the street, one of the chief difficulties is modeling the relationship between volumes, speeds, number of lanes, and other related variables. When you consider this sensitivity analysis, rather than thinking about a single street with the traffic volumes varying over a number of cases or over time, think of this analysis as applicable to how link BLOS would vary across a number of streets with similar characteristics and varying traffic volumes.
+
+%Next, we consider $F_s$ which is a function of two variables, vehicle running speed ($S_{Ra}$) and percent heavy vehicles ($P_{HVa}$). 
+
+
+%heavy vehicles
+
+\begin{figure}
+\centering
+
+\includegraphics{BLOS_link_sens_HV}
+
+
+\caption{Sensitivity of link BLOS to variations in the percentage of heavy vehicles.}
+
+\label{fig:BLOS_link_sens_HV}
+
+\end{figure}
+
+The percent heavy vehicles has a very strong influence on link BLOS, as Figure \ref{fig:BLOS_link_sens_HV} shows. As the proportion of heavy vehicles varies, $F_s$ and link BLOS increase along a relatively steep quadratic. With running speed at the default value of 22.2, raising the proportion of heavy vehicles from 0 to 0.35 results in raising $F_s$ from nearly zero to over 7. Anything above 5 is an F, so heavy vehicles alone can cause link BLOS to produce a failing grade, unless $F_w$ has a large negative value. 
+
+It is worth noting some variables to which link BLOS is \emph{not} sensitive despite their importance to planners and policymakers (5). Link BLOS is indifferent to physical separation between bicyclists and vehicles; it cannot distinguish between bike lane striping and a cycle track. Similarly, the methodology is indifferent to other innovative bikeway treatments, such as colored paint or striping across non-boundary intersections. 
+
+\subsection{Segment BLOS: Variables, Formula, and Sensitivity}
+
+Recall that a segment is a link and an adjacent intersection, where segments are specific to a direction of travel and it is always the downstream intersection that is combined with the link. Segment BLOS is a function of intersection BLOS and link BLOS, with one additional factor: $N_{ap,s}$, the number of access point approaches on the right side in the subject direction of travel, per segment length. This is a measure of the frequency of potential conflict between bicyclists and vehicles that are turning into or out of such access points. With intersection BLOS ($I_{b,int}$) and link BLOS ($I_{b,link}$) in hand, the calculation of segment BLOS is relatively straightforward:
+
+$$ I_{b,seg} = 0.160 I_{b,link} +0.011F_{bi}e^{I_{b,int}} + 0.035 \frac{N_{ap,s}}{L/5280} + 2.85$$
+
+where $F_{bi}$ is an indicator variable that is 1 if the intersection is signalized, and 0 if it is not, and $L$ is the length of the segment.
+
+\subsubsection{Sensitivity Analysis}
+Two figures show the relative importance of intersection BLOS, link BLOS, and access points in determining segment BLOS. The first, Figure \ref{fig:BLOS_seg_sens_1} considers the contributions of intersection BLOS and link BLOS, with $N_{ap,s}$ set at a default value of 0.
+
+\begin{figure}
+\centering
+\includegraphics{BLOS_seg_sens_1}
+\caption{Sensitivity of segment BLOS to component intersection and link scores.}
+\label{fig:BLOS_seg_sens_1}
+\end{figure}
+
+
+%want to revise this figure to show full range of intersection and link scores
+
+As Figure \ref{fig:BLOS_seg_sens_1} shows, link BLOS has a slightly greater contribution to segment BLOS, until link and intersection BLOS scores exceed about 4, at which point intersection BLOS predominates. Since link and intersection BLOS can both range above 5, it is possible for large values of intersection BLOS to drive segment BLOS. 
+
+
+\begin{figure}
+\centering
+\includegraphics{BLOS_seg_sens_ap}
+\caption{Sensitivity of segment BLOS to the number of right-side access points.}
+\label{fig:BLOS_seg_sens_ap}
+\end{figure}
+
+
+Figure \ref{fig:BLOS_seg_sens_ap} shows the effect on segment BLOS of adding access points. Each additional access point adds about 0.27 to the score, which means that each access point degrades segment BLOS by about 1/3 of a grade.
+
+We note one variable to which segment BLOS is not sensitive. The HCM authors' definition of $N_{ap,s}$, which specifies right-side access points, would be inappropriate in analysis of left-side bicycle lanes, which are common on one-way streets.
+
+\subsection{Facility BLOS: Variables and Formula}
+Bicycle level-of-service for a facility is a straightforward length-weighted linear combination of BLOS on the segments that comprise the facility. Let $I_{b,seg,i}$ be each component segment $i$'s BLOS, and let $L_i$ be the length of each such segment. Then BLOS on the facility is $I_{b,F}$ as follows:
+
+$$I_{b,F} = \frac{\sum_{i=1}^m I_{b,seg,i} L_i
+}
+{ \sum_{i=1}^m L_i
+}.
+$$
+
+The analyst converts this score to a grade using the familiar correspondence table. 
+
+\section{BLOS Development: Past and Future}
+Having so thoroughly narrated the HCM's methodology for bicycle level-of-service, a few concluding observations are in order. BLOS is a data-intensive, mathematically involved, multi-stage calculation. It generally is not sensitive to the full range of variables of interest to planners and policymakers, and deals particularly poorly with innovative treatments. In addition, the extent to which this method is useful for analyzing proposed changes to a street depends to a great extent on the analyst's ability to predict changes in operational variables that are influenced but not directly controlled by street design, such as traffic volumes and speeds. The BLOS model is quite specific to formal units of analysis such as the intersection and link, and is specific to a direction of travel. 
+
+Before concluding, it is also worth stating how the BLOS model was developed, as this process explains some of the problems we observe. The development of link BLOS is described in (6). One hundred and fifty (150) bicyclists of varying ages, genders, and abilities rode on a test course in Tampa, Florida. Test proctors stopped participants and had them complete response cards, grading the segment they just rode on on a scale from A to F. Landis et al then performed linear regression of these scores, aiming to explain the variation in scores using variables identified in the literature (as of 1997) as being influential of bicyclists' quality of service. Best-fit regression coefficients produced the coefficients that appear in the HCM and in the formulas presented in this paper. A similar process was followed for intersection BLOS using 60 participants on a course in Orlando, Florida (7). These models were then taken as a priori inputs in further experiments used to develop segment and facility BLOS using participant ratings of video clips of various streets. This process is described in (1). To our knowledge, none of the BLOS models was ever validated, calibrated, or otherwise tested on roadways and participants other than those used to develop the model. It is little surprise, then, that these models produce some questionable results, and given their age, fail to account for the full range of variables and treatments that are now of interest to planners and policymakers.
+ 
+Our hope is that a transparent presentation of BLOS enables people with broad expertise to scrutinize the model. A look inside the black box quickly reveals the practical challenges in any quality of service model for bicycling. As with walking, experience of this mode is highly subjective, and varies across user groups and experience levels. Development and refinement of a model like BLOS is labor-intensive; our hope is that by enabling broader scrutiny of the model we can target resources towards the most crucial improvements for validity and usability. For BLOS, we humbly suggest three major changes. First, include tools for agencies to model changes to vehicle volumes and speeds. Many local agencies do not have the capacity to predict these changes, but they are of immense importance in determining the final score. At least allowing agencies to make their assumptions explicit (e.g. no change in volume, assumed range of reductions or increases in volumes) would improve scenario analysis for proposed roadway projects. Second, improve model validity by updating BLOS to include the great variety of streets and bicycle facilities seen throughout the U.S. It is not sufficient to develop BLOS using data from a single city. Further, BLOS should be validated on data other than that use to build the model. Finally, simplify the functional forms to reach validity with the simplest model possible. Varying specifications for BLOS should be tested, and the selection of the final form should keep usability and transparency in mind. 
+
+\section{Acknowledgements}
+This research was funded by a grant from the University of California Transportation Center.  Madeline Brozen and Tim Black provided invaluable assistance.
+
+\end{document}
