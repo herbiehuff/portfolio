@@ -1,14 +1,10 @@
-import numpy as np
-import pandas as pd
-import os
-import time
-
-# next step is to fix this installation / openpyxl error
-
-
 # --- overview ----
 
-# identify file paths for SEG and INT datasets to update
+# This is a munging / data management script used for the Bicycle Crash Risk
+# Project
+# http://www.its.ucla.edu/publication/bicycle-crash-risk-how-does-it-vary-and-why/
+
+# It updates the SEG and INT datasets with extrapolated annual bicycle count volumes
 
 # read in SectionIDs and extrapolation columns from appropriate sheets of primary query results
 # mostly a matter of ID'ing the right sheets and columns
@@ -23,6 +19,11 @@ import time
 
 #--- end overview ---
 
+import numpy as np
+import pandas as pd
+import os
+import time
+
 # --- Identify file paths ----
 working_folder = '/Users/herbie/Dropbox/Bicycle Crash Risk/python/'
 
@@ -30,23 +31,19 @@ INPUT_SEG_FILE_PATH = working_folder + 'Dataset/Dataset_Seg_061716_v01Crashesvol
 INPUT_INT_FILE_PATH = working_folder + 'Dataset/Dataset_Int_061716_v01Crashesvols.xlsx'
 EXTRAP_RESULTS_FOLDER_PATH = working_folder + 'extrapolated count volumes//' #Berkeley's results
 
+
 file_suffix = 'extraps_' + time.strftime("%m%d%y")
 
 OUTPUT_SEG_FILE_PATH = INPUT_SEG_FILE_PATH[:-5] + file_suffix + '.xlsx'
 OUTPUT_INT_FILE_PATH = INPUT_INT_FILE_PATH[:-5] + file_suffix + '.xlsx'
 
-#--- Deal with primary query results
+# EXTRAP_RESULTS_FOLDER_PATH contains numerous Excel files with different estimates
+# of the annual bike volume at each segment and each intersection
+# the correct sheet in the Excel file is always named like 'INT_INT'
+# where 'INT_INT', 'INT_ADJ_SEG','SEG_SEG' etc and various combos of these strings
+# are describing the spatial relationship between the count and the int or seg
 
-# the correct sheet is always named like 'INT_INT'
-# i had to manually fix this in the case of 'INT_ADJ_SEG'
-# which had a 'RAW' sheet and an 'INT_ADJ_SEG' sheet
 # create a dict with the query, sheetname, and columns
-
-# primaries = ['Q_INT_ADJ_SEG_v3_UPDATED_20160616_Julia.xlsx',
-# 'Q_SEG_ADJ_INT_v3_UPDATED_20160617_v2_Dave.xlsx',
-# 'Q_SEG_ADJ_SEG_v3_UPDATED_20160617_Dave.xlsx',
-# 'Q_SEG_SEG_v3_UPDATED_201601617_Dave.xlsx',
-# 'Q_INT_INT_v3_UPDATED_20160617_Dave.xlsx']
 
 def IDPrimariesCombos():
     berkeley_excels = [file for file in os.listdir(EXTRAP_RESULTS_FOLDER_PATH) if file[-5:] == '.xlsx']
@@ -105,7 +102,7 @@ def strip_columns(df):
 
 def get_clean_df(extraps):
     # cleans up the data frames which are stored as values in a dict, extraps
-    # transforms into one df with repeated Section_ID s
+    # transforms into one df with repeated Section_IDs
     for frametitle in extraps.keys():
         df = extraps[frametitle]
         strip_columns(df)
@@ -122,8 +119,10 @@ def get_means_by_section(extraps_df):
 def join_to_dataset(extraps_means):
     segs = pd.read_excel(INPUT_SEG_FILE_PATH)
     ints = pd.read_excel(INPUT_INT_FILE_PATH)
-    segs_output = segs.merge(extraps_means, how='left', left_on='Section_ID', right_index = True)
-    ints_output = ints.merge(extraps_means, how='left', left_on='Section_ID', right_index = True)
+    segs_output = segs.merge(extraps_means, how='left', left_on='Section_ID',
+                            right_index = True)
+    ints_output = ints.merge(extraps_means, how='left', left_on='Section_ID',
+                            right_index = True)
     return segs_output, ints_output
 
 def setup_extraps():
