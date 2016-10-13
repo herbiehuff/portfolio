@@ -1,4 +1,9 @@
-# 9.27.2016
+# A working script from an ongoing UCLA project.
+# This takes in a transit stations file (GTFS format) and a file with
+# the centroids of Census-tract-sized analysis polygons called
+# transportation analysis zones or TAZs.
+# It converts the coordinates in each file to lat,long
+# then calls Google Maps Distance Matrix API.
 
 from osgeo import ogr
 import pandas as pd
@@ -6,26 +11,12 @@ import numpy as np
 import googlemaps
 
 # ---- inputs ----
-# can later write something to accommodate switching os's (linux and mac)
+GEODATA_PATH = '/home/lewiscenter/Dropbox/TNCGrandChallenges/geodata/'
 
-# mac at home
-# geodata_path = '/Users/herbie/Dropbox/TNCGrandChallenges/geodata/'
+RAIL_STOPS = GEODATA_PATH + 'stops.txt'
+TAZ_CENTROIDS = GEODATA_PATH + 'tier1centroids.kml'
 
-# linux at work
-geodata_path = '/home/lewiscenter/Dropbox/TNCGrandChallenges/geodata/'
-
-TRANSIT_STOPS = geodata_path + 'AllExclusiveROW.kml'
-TAZ_CENTROIDS = geodata_path + 'tier1centroids.kml'
-
-#old key
-# MY_GOOGLE_MAPS_API_KEY = 'AIzaSyAXlUfqZJS82XKQW2pguP7uTiFJo1U9p8c'
-# MY_GOOGLE_MAPS_API_KEY = 'AIzaSyARfq5SY8fTDo6MlVk6h5iZFeJDzBxGF1I' #herbiehuff@g.ucla.edu key
-MY_GOOGLE_MAPS_API_KEY = 'AIzaSyCBzm6aULHqIwaVzLnigyFPnd4h65dv58A' #lewiscenter key
-
-# --- functions ---
-# should GetStationCoords and GetTazCoords be revised so they take arguments?
-# if yes it needs like this in main()
-# stationcoords = GetStationCoords(RAIL_STOPS)
+MY_GOOGLE_MAPS_API_KEY = '!insert your API key here!'
 
 def GetCoordsFromGTFS(input_txt):
     # input is the stops.txt from a GTFS file directory
@@ -52,27 +43,14 @@ def GetCoordsFromKml(input_kml):
     coords = zip(ycoords,xcoords)
     return coords
 
-def CrowFliesFilter(input_kml, target_kml, buffer_radius):
-    # to reduce calls to google maps api, we filter by a crow flies threshold
-    # buffer_radius is the threshold distance (in what units)
-    # output_kml is all the features within buffer_radius distance of target_kml
-    return output_kml
-
 def CallGmapsDistanceMatrix(origins,dests):
     # origins and dests are lists of 2-tuples (lat,lon)
     # call google maps api distance_matrix
 
-    # new idea: no chunks. call one pair at a time.
-    # gives me more control over not repeating pairs
     gmaps = googlemaps.Client(key=MY_GOOGLE_MAPS_API_KEY)
-    #dists = []
-    #times = []
     dists = np.zeros([len(origins),len(dests)])
     times = np.zeros([len(origins),len(dests)])
 
-    # instead of k_index counters, tried to use k_index = origins.index(k)
-    # but it seems like it failed to index a bunch of times.
-    # unknown why. rounding error?
     k_index = 0
     for k in origins:
         l_index = 0
@@ -80,30 +58,19 @@ def CallGmapsDistanceMatrix(origins,dests):
             dmresult = gmaps.distance_matrix(k,l) # input a tuple
             dist = dmresult['rows'][0]['elements'][0]['distance']['value']
             time = dmresult['rows'][0]['elements'][0]['duration']['value']
-            #dists.append(dist)
-            #times.append(time)
             dists[k_index,l_index]=dist
             times[k_index,l_index]=time
             l_index = l_index+1
         k_index = k_index+1
     return dists, times
 
-def AssignGmapsResultsToColumns(fieldname,resultarray):
-    pass
-    # find minimum and index value at minimum (to ID closest feature)
-    # can also use pandas to return minimum index value and store this too
-    return
-
-# can write a function to filter by distance threshold or time threshold
-
 def main():
-    stationcoords = GetStationCoords(RAIL_STOPS)
-    tazcoords = GetTazCoords(TAZ_CENTROIDS)
+    stationcoords = GetCoordsFromGTFS(RAIL_STOPS)
+    tazcoords = GetCoordsFromKml(TAZ_CENTROIDS)
     # dists, times = CallGmapsDistanceMatrix(stationcoords,tazcoords)
     # for testing, only first 25 origins and dests
     dists, times = CallGmapsDistanceMatrix(tazcoords[:25],stationcoords[:18])
     return dists, times
 
 if __name__ == '__main__':
-    #main()
     dists, times = main()
